@@ -110,6 +110,7 @@ class VenueForm(Form):
             ('Reggae', 'Reggae'),
             ('Rock n Roll', 'Rock n Roll'),
             ('Soul', 'Soul'),
+            ('Swing', 'Swing'),
             ('Other', 'Other'),
         ]
     )
@@ -126,11 +127,6 @@ class VenueForm(Form):
             ('False', 'NO'),
         ]
     )
-    """
-    seeking_talent = BooleanField(
-        'seeking_talent'
-    )
-    """
     seeking_talent_description = StringField(
         'seeking_talent_description'
     )
@@ -227,12 +223,26 @@ class ArtistForm(Form):
             ('Reggae', 'Reggae'),
             ('Rock n Roll', 'Rock n Roll'),
             ('Soul', 'Soul'),
+            ('Swing', 'Swing'),
             ('Other', 'Other'),
         ]
     )
     facebook_link = StringField(
         # TODO implement enum restriction
         'facebook_link', validators=[URL()]
+    )
+    website_link = StringField(
+        'website_link', validators=[URL()]
+    )
+    seeking_venue = SelectField(
+        'seeking_venue', validators=[DataRequired()],
+        choices=[
+            ('True', 'YES'),
+            ('False', 'NO'),
+        ]
+    )
+    seeking_venue_description = StringField(
+        'seeking_venue_description'
     )
 
 # TODO IMPLEMENT NEW ARTIST FORM AND NEW SHOW FORM

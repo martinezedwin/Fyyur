@@ -10,10 +10,25 @@
 				<i class="fas fa-music"></i>
 				<div class="item">
 					<h5>{{ venue.name }}</h5>
+					
 				</div>
 			</a>
+			<button class="button-press"  data-id="{{ venue.id }}" type="button" style="float: right; vertical-align: top;" >&cross;</button>
 		</li>
 		{% endfor %}
 	</ul>
 {% endfor %}
+<script>
+	const deletes = document.querySelectorAll('.button-press');
+		for (let j = 0; j < deletes.length; j++) {
+			const delete_item = deletes[j];
+			delete_item.onclick = function(e) {
+				console.log('event', e);
+				const venue_id = e.target.dataset['id'];
+				fetch('/venues/'+ venue_id, {
+					method: 'DELETE'
+				})
+			}
+		}
+</script>
 {% endblock %}
