@@ -17,6 +17,7 @@ from forms import *
 from flask_migrate import Migrate
 import sys
 from sqlalchemy import func
+from datetime import datetime
 #----------------------------------------------------------------------------#
 # App Config.
 #----------------------------------------------------------------------------#
@@ -265,6 +266,8 @@ def show_venue(venue_id):
   }
   data = list(filter(lambda d: d['id'] == venue_id, [data1, data2, data3]))[0]
   """
+  
+
   venue = Venue.query.get(venue_id)
 
   if not venue: 
@@ -274,6 +277,30 @@ def show_venue(venue_id):
   genres = genres.replace('{', '')
   genres = genres.replace('}', '')
   genres = genres.split(',')
+
+  future_shows = db.session.query(Show).join(Venue).join(Artist).filter(Show.venue_id==venue_id).filter(Show.start_time>=datetime.now()).all();
+  old_shows = db.session.query(Show).join(Venue).join(Artist).filter(Show.venue_id==venue_id).filter(Show.start_time<datetime.now()).all();
+  #print(future_shows)
+  #print(old_shows)
+
+  past_shows = []
+  upcoming_shows = []
+
+  for show in old_shows:
+    past_shows.append({
+        "artist_id": show.artist_id,
+        "artist_name": show.Artist.name,
+        "artist_image_link":show.Artist.image_link,
+        "start_time": datetime.strftime(show.start_time, '%Y-%m-%d %H:%M:%S')
+      })
+
+  for show in future_shows:
+    upcoming_shows.append({
+        "artist_id": show.artist_id,
+        "artist_name": show.Artist.name,
+        "artist_image_link":show.Artist.image_link,
+        "start_time": datetime.strftime(show.start_time, '%Y-%m-%d %H:%M:%S')
+      })
 
   data = {
     "id": venue.id,
@@ -288,30 +315,10 @@ def show_venue(venue_id):
     "seeking_talent": venue.seeking_talent,
     "seeking_description": venue.seeking_talent_description,
     "image_link":venue.image_link,
-    "past_shows": [{
-      "artist_id": 5,
-      "artist_name": "Matt Quevedo",
-      "artist_image_link": "https://images.unsplash.com/photo-1495223153807-b916f75de8c5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=334&q=80",
-      "start_time": "2019-06-15T23:00:00.000Z"
-    }],
-    "upcoming_shows": [{
-      "artist_id": 6,
-      "artist_name": "The Wild Sax Band",
-      "artist_image_link": "https://images.unsplash.com/photo-1558369981-f9ca78462e61?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=794&q=80",
-      "start_time": "2035-04-01T20:00:00.000Z"
-    }, {
-      "artist_id": 6,
-      "artist_name": "The Wild Sax Band",
-      "artist_image_link": "https://images.unsplash.com/photo-1558369981-f9ca78462e61?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=794&q=80",
-      "start_time": "2035-04-08T20:00:00.000Z"
-    }, {
-      "artist_id": 6,
-      "artist_name": "The Wild Sax Band",
-      "artist_image_link": "https://images.unsplash.com/photo-1558369981-f9ca78462e61?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=794&q=80",
-      "start_time": "2035-04-15T20:00:00.000Z"
-    }],
-    "past_shows_count": 1,
-    "upcoming_shows_count": 1,
+    "past_shows": past_shows,
+    "upcoming_shows": upcoming_shows,
+    "past_shows_count": len(old_shows),
+    "upcoming_shows_count": len(future_shows),
   }
   return render_template('pages/show_venue.html', venue=data)
 
@@ -574,6 +581,31 @@ def show_artist(artist_id):
   genres = genres.replace('}', '')
   genres = genres.split(',')
 
+  future_shows = db.session.query(Show).join(Venue).join(Artist).filter(Show.artist_id==artist_id).filter(Show.start_time>=datetime.now()).all();
+  old_shows = db.session.query(Show).join(Venue).join(Artist).filter(Show.artist_id==artist_id).filter(Show.start_time<datetime.now()).all();
+  print(future_shows)
+  print(old_shows)
+
+  past_shows = []
+  upcoming_shows = []
+
+  for show in old_shows:
+    past_shows.append({
+      "venue_id": show.venue_id,
+      "venue_name": show.Venue.name,
+      "venue_image_link": show.Venue.image_link,
+      "start_time": datetime.strftime(show.start_time, '%Y-%m-%d %H:%M:%S')
+    })
+
+  for show in future_shows:
+    upcoming_shows.append({
+      "venue_id": show.venue_id,
+      "venue_name": show.Venue.name,
+      "venue_image_link": show.Venue.image_link,
+      "start_time": datetime.strftime(show.start_time, '%Y-%m-%d %H:%M:%S')
+    })
+
+
   #data = list(filter(lambda d: d['id'] == artist_id, [data1, data2, data3]))[0]
   data = {
     "id": artist.id,
@@ -587,15 +619,10 @@ def show_artist(artist_id):
     "seeking_venue": artist.seeking_venue,
     "seeking_description": artist.seeking_venue_description,
     "image_link": artist.image_link,
-    "past_shows": [{
-      "venue_id": 1,
-      "venue_name": "The Musical Hop",
-      "venue_image_link": "https://images.unsplash.com/photo-1543900694-133f37abaaa5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=400&q=60",
-      "start_time": "2019-05-21T21:30:00.000Z"
-    }],
-    "upcoming_shows": [],
-    "past_shows_count": 1,
-    "upcoming_shows_count": 0,
+    "past_shows": past_shows,
+    "upcoming_shows": upcoming_shows,
+    "past_shows_count": len(old_shows),
+    "upcoming_shows_count": len(future_shows),
   }
   return render_template('pages/show_artist.html', artist=data)
 
@@ -874,7 +901,7 @@ def shows():
   # displays list of shows at /shows
   # TODO: replace with real venues data.
   #       num_shows should be aggregated based on number of upcoming shows per venue.
-  #"""
+  """
   data=[{
     "venue_id": 1,
     "venue_name": "The Musical Hop",
@@ -911,20 +938,18 @@ def shows():
     "artist_image_link": "https://images.unsplash.com/photo-1558369981-f9ca78462e61?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=794&q=80",
     "start_time": "2035-04-15T20:00:00.000Z"
   }]
-  #"""
-  shows = db.session.query(Show).join(Artist).join(Venue).all()
-  print(shows)
-  #pritn(show.venue.name)
-  print(shows[0])
-  data1 = []
+  """
+  data = []
+  shows = db.session.query(Show).join(Venue).join(Artist).all()
+
   for show in shows:
     data.append({
       "venue_id": show.venue_id,
-      "venue_name": show.venue.name,
+      "venue_name": show.Venue.name,
       "artist_id": show.artist_id,
-      "artist_name": show.artist.name,
-      "artist_image_link": show.artist.image_link,
-      "start_time": "2019-05-21T21:30:00.000Z"
+      "artist_name": show.Artist.name,
+      "artist_image_link": show.Artist.image_link,
+      "start_time": datetime.strftime(show.start_time, '%Y-%m-%d %H:%M:%S')#"2019-05-21T21:30:00.000Z"
       })
   return render_template('pages/shows.html', shows=data)
 
@@ -943,9 +968,9 @@ def create_show_submission():
   venue_id = request.form['venue_id']
   start_time = request.form['start_time']
 
-  print(artist_id)
-  print(venue_id)
-  print(type(start_time))
+  #print(artist_id)
+  #print(venue_id)
+  #print(type(start_time))
 
   try:
     new_show = Show(artist_id = artist_id,
@@ -968,8 +993,6 @@ def create_show_submission():
     # TODO: on unsuccessful db insert, flash an error instead.
     # e.g., flash('An error occurred. Artist ' + data.name + ' could not be listed.')
     flash('An error occurred. Show could not be listed.')
-
-
 
   # on successful db insert, flash success
   #flash('Show was successfully listed!')
